@@ -16,12 +16,14 @@
   root.TVPlanner={buildMeal};if(typeof module!=='undefined')module.exports={buildMeal};
 })(typeof window!=='undefined'?window:globalThis);
 const $=id=>document.getElementById(id);
+const previewMode=new URLSearchParams(location.search).get('preview')==='1'||sessionStorage.getItem('tabletime-preview')==='1';if(previewMode)sessionStorage.setItem('tabletime-preview','1');
 const freshPrefs={videoSound:false,videoVolume:45,musicSound:true,musicVolume:16};
 let prefs={...freshPrefs},history=[],watchedIds=new Set(),viewCounts={},playToken=0,lastRecordedToken=-1;
 try{const stored=JSON.parse(localStorage.getItem('tabletime-tv-v2')||'null');if(stored){prefs={...prefs,...stored.prefs};history=stored.history||[];viewCounts=stored.viewCounts||{};if(!stored.viewCounts){for(const row of history)viewCounts[row.id]=(viewCounts[row.id]||0)+1;for(const id of stored.watchedIds||[])if(!viewCounts[id])viewCounts[id]=1}watchedIds=new Set([...(stored.watchedIds||[]),...history.map(v=>v.id)].filter(v=>typeof v==='string'))}localStorage.removeItem('tabletime-v1')}catch{}
-function syncWatched(){try{const stored=JSON.parse(localStorage.getItem('tabletime-tv-v2')||'null');for(const id of stored?.watchedIds||[])if(typeof id==='string')watchedIds.add(id)}catch{}}
-const persist=()=>{try{syncWatched();localStorage.setItem('tabletime-tv-v2',JSON.stringify({prefs,history:history.slice(-500),watchedIds:[...watchedIds],viewCounts}))}catch{$('playStatus').textContent='이 브라우저에서는 시청 기록을 저장할 수 없습니다.'}};
-function recordWatched(){if(!current||lastRecordedToken===playToken)return;const actual=video?.getVideoData?.()?.video_id;if(actual&&actual!==current.id)return;lastRecordedToken=playToken;watchedIds.add(current.id);viewCounts[current.id]=(viewCounts[current.id]||0)+1;history.push({id:current.id,at:Date.now()});persist();renderChoices();renderPlaylist()}
+function syncWatched(){if(previewMode)return;try{const stored=JSON.parse(localStorage.getItem('tabletime-tv-v2')||'null');for(const id of stored?.watchedIds||[])if(typeof id==='string')watchedIds.add(id)}catch{}}
+const persist=()=>{if(previewMode)return;try{syncWatched();localStorage.setItem('tabletime-tv-v2',JSON.stringify({prefs,history:history.slice(-500),watchedIds:[...watchedIds],viewCounts}))}catch{$('playStatus').textContent='이 브라우저에서는 시청 기록을 저장할 수 없습니다.'}};
+function recordWatched(){if(previewMode)return;if(!current||lastRecordedToken===playToken)return;const actual=video?.getVideoData?.()?.video_id;if(actual&&actual!==current.id)return;lastRecordedToken=playToken;watchedIds.add(current.id);viewCounts[current.id]=(viewCounts[current.id]||0)+1;history.push({id:current.id,at:Date.now()});persist();renderChoices();renderPlaylist()}
+if(previewMode){history=[];watchedIds=new Set();viewCounts={};$('previewNote').hidden=false}
 let channel=null,current=null,queue=[],position=0,video=null,videoReady=false,apiReady=false,paused=false,failed=new Set(),chosenFilter='all',selectionRun=0;
 const ICONS={heritage:'<path d="m6 19 5-5m-2-7 3-3 8 8-3 3zm-3 14h14M4 7l3-3m10 13 3 3"/>',agility:'<path d="M3 19h18M5 19v-8m14 8v-8M5 12h14M6 6l2-2 3 3 5-1 3 3-2 3M9 8l-2 4m9-4 1-4"/>',football:'<circle cx="12" cy="12" r="9"/><path d="m12 7 5 4-2 5H9l-2-5zM12 3v4m9 5-4-1m0 9-2-4M7 20l2-4m-6-4 4-1"/>',scenery:'<path d="m2 20 7-12 4 7 3-5 6 10zM7 11l2 2 2-1"/><circle cx="17" cy="5" r="2"/>',nostalgia:'<rect x="3" y="6" width="18" height="14" rx="2"/><path d="m8 2 4 4 4-4m-6 8 5 3-5 3z"/>'};
 ICONS.cooking='<path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zm12 1h2a3 3 0 0 1 0 6h-3M3 21h16M7 3v3m4-4v4m4-3v3"/>';

@@ -11,3 +11,5 @@
 .screen-stage:fullscreen{background:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:10px;width:100vw;height:100vh}.screen-stage:fullscreen .tv-screen{width:min(100%,calc((100vh - 82px)*16/9));aspect-ratio:16/9;flex-shrink:0;border:0;border-radius:0}.screen-stage:fullscreen 
 
 .sport-sections{display:flex;gap:12px;margin:0 0 18px}.sport-sections button{flex:1;min-height:62px;font-size:21px;font-weight:700}.sport-sections button.selected{background:#e1e8d5;border:2px solid #7d925f;color:#4e643c}
+
+#languageSelect{padding:9px 12px;font-size:14px}.channel-card .description,.channel-card .go,.welcome .gentle,#brand small,footer{display:none}.welcome{padding:24px 0}.channel-card{min-height:235px}.channel-card strong{font-size:27px}.help{font-size:11px}.country-label{display:none!important}.sound-panel h2{display:none}.music-caption{display:none}.screen-stage:fullscreen .tv-screen{width:min(100%,calc((100vh - 20px)*16/9))}@media(max-width:650px){.header-right{flex-direction:row}#languageSelect{font-size:12px;padding:7px}.account-button{font-size:10px}.channel-card{min-height:170px}.channel-card strong{font-size:25px}}
