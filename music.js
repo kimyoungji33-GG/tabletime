@@ -1,0 +1,13 @@
+(function(root){
+const tracks=root.TV_MUSIC;
+let player=null,isReady=false,wanted=false,playing=false,index=0,vol=16,custom=null,failures=0,timer=null;
+function report(text){api.onStatus?.(text,custom?null:index)}
+function label(){return custom?'내 YouTube 음악 목록':tracks[index].artist+' — '+tracks[index].title}
+function clear(){if(timer)root.clearTimeout(timer);timer=null}
+function watch(){clear();if(!wanted||playing)return;timer=root.setTimeout(()=>{if(!wanted||playing)return;if(++failures<tracks.length&&!custom)api.next();else{wanted=false;report('음악 연결이 제한되었습니다. 플레이어 재생 버튼을 누르거나 다른 곡을 선택해 주세요.')}},14000)}
+function begin(){if(!isReady||!wanted)return;player.setVolume(vol);player.unMute();player.playVideo();watch()}
+function rebuild(){clear();player?.destroy?.();player=null;isReady=false;playing=false;if(!root.document.getElementById('musicPlayer')){const host=root.document.createElement('div');host.id='musicPlayer';root.document.getElementById('musicRetry').before(host)}make()}
+function make(){if(player||!root.YT?.Player)return;player=new root.YT.Player('musicPlayer',{host:'https://www.youtube-nocookie.com',videoId:tracks[index].id,width:'250',height:'200',playerVars:{autoplay:0,controls:1,rel:0,playsinline:1,origin:root.location.origin},events:{onReady:()=>{isReady=true;if(custom)player.cuePlaylist({listType:'playlist',list:custom});begin()},onStateChange:e=>{if(e.data===1){playing=true;failures=0;clear();report(label()+' · 재생 중')}else if(e.data===0){playing=false;if(wanted){if(custom)player.nextVideo();else api.next()}}else if(e.data===2){playing=false;report(label()+' · 일시정지')}},onAutoplayBlocked:()=>{clear();playing=false;report('음악 재생 버튼을 한 번 눌러 주세요.')},onError:()=>{playing=false;if(wanted&&!custom&&++failures<tracks.length)api.next();else{wanted=false;clear();report('이 음악은 외부 재생이 제한됩니다. 다른 곡을 선택해 주세요.')}}}})}
+const api={tracks,onStatus:null,ready:make,play(){wanted=true;make();begin();watch();if(!playing)report(label()+' · 연결 중')},pause(){wanted=false;playing=false;clear();if(isReady)player.pauseVideo()},volume(v){vol=Math.min(100,Math.max(0,Number(v)||0));if(isReady)player.setVolume(vol)},select(i){custom=null;index=Math.min(tracks.length-1,Math.max(0,i));failures=0;playing=false;if(isReady){player.loadVideoById(tracks[index].id);if(!wanted)player.pauseVideo();else begin()}else rebuild();report(label());watch()},next(){index=(index+1)%tracks.length;playing=false;if(isReady){player.loadVideoById(tracks[index].id);begin()}else rebuild();report(label()+' · 연결 중');watch()},usePlaylist(id){custom=id;failures=0;if(isReady)player.loadPlaylist({listType:'playlist',list:id,index:0});else rebuild();report(label())},useDefault(){custom=null;api.select(0)},get playing(){return playing}};
+root.TVMusic=api;
+})(window);
